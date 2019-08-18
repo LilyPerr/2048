@@ -14,6 +14,8 @@
   (let ((board (make-array '(4 4) :initial-element nil)))
     (setf (aref board 1 1) (make-instance 'square))
     (setf (aref board 0 0) (make-instance 'square))
+    (setf (aref board 2 1) (make-instance 'square))
+    (setf (aref board 3 1) (make-instance 'square))
     (sdl2:with-init (:everything)
       (sdl2-image:init '(:png))
       (sdl2:with-window (window)
@@ -28,8 +30,18 @@
                           (cond
                             ((sdl2:scancode= scancode :scancode-escape)
                              (sdl2:push-event :quit))
-                            ((sdl2:scancode= scancode :scancode-a)
-                             (format *output* "pressed up~%")))))
+                            ((sdl2:scancode= scancode :scancode-up)
+                             (dotimes (x 4)
+                               (dotimes (y 4)
+                                 (when (aref board y x)
+                                   (let ((i
+                                           (do ((i (1- y) (decf i)))
+                                               ((minusp i) (1+ i))  ;;(minusp i) is the terminating condition (i < 0); (1+ i) is the place of the return value
+                                             (when (aref board i x)
+                                               (return (1+ i))))))
+                                     (let ((square (aref board y x)))
+                                       (setf (aref board y x) nil
+                                             (aref board i x) square))))))))))
               (:idle ()
                      (sdl2:set-render-draw-color renderer 0 0 0 0)
                      (sdl2:render-clear renderer)
